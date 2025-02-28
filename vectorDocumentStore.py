@@ -62,7 +62,7 @@ class VectorDocumentStore:
             )
             logger.info(f"Added document '{title}' for role '{role}'")
             return True
-            
+        
         except Exception as e:
             logger.error(f"Error adding document to vector database: {str(e)}")
             return False
@@ -103,13 +103,11 @@ class VectorDocumentStore:
                 title = results['metadatas'][0][i].get('title', 'Untitled')
                 score = results['distances'][0][i] if 'distances' in results else 0.0
                 similarity = 1.0 - min(score, 1.0)  
-                
                 formatted_results.append({
                     "title": title,
                     "content": doc,
                     "score": similarity
                 })
-            
             return formatted_results
             
         except Exception as e:

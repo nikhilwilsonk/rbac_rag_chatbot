@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
+from openai import OpenAI
 
 DATA_DIR = Path("data")
 USER_DB_PATH = DATA_DIR / "users.json"
@@ -26,3 +27,7 @@ def get_openai_api_key():
         api_key = input("Please enter your OpenAI API key: ").strip()
         os.environ["OPENAI_API_KEY"] = api_key
     return api_key
+
+def init_openai_client():
+    api_key = get_openai_api_key()
+    return OpenAI(api_key=api_key)
