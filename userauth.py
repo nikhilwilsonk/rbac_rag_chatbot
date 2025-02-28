@@ -6,7 +6,10 @@ import secrets
 import time
 from typing import Dict, Optional, Tuple
 from config import ROLES, SESSION_EXPIRY , USER_DB_PATH, SESSION_DB_PATH
-from app import logger
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class UserAuth:
     def __init__(self, user_db_path: Path = USER_DB_PATH, session_db_path: Path = SESSION_DB_PATH):

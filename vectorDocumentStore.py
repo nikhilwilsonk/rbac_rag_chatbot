@@ -1,10 +1,13 @@
-from datetime import time
+import time
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 import chromadb
 from config import DOCUMENTS_DIR, ROLES, VECTOR_DB_PATH,get_openai_api_key
 from chromadb.utils import embedding_functions
-from app import logger
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class VectorDocumentStore:
     def __init__(self, client, db_path: Path = VECTOR_DB_PATH, docs_dir: Path = DOCUMENTS_DIR):
@@ -26,6 +29,8 @@ class VectorDocumentStore:
                     name=f"{role}_docs",
                     embedding_function=self.embedding_function
                 )
+                print(self.collections[role])
+                print(self.embedding_function)
             except chromadb.errors.InvalidCollectionException:
                 self.collections[role] = self.chroma_client.create_collection(
                     name=f"{role}_docs",

@@ -1,5 +1,8 @@
 from vectorDocumentStore import VectorDocumentStore
-from app import logger
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class RAGChat:
     def __init__(self, client, doc_store: VectorDocumentStore):

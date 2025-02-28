@@ -1,23 +1,25 @@
-import logging
 import gradio as gr
-from config import RATE_LIMIT_MAX_REQUESTS, ROLES, init_openai_client
-from ragChat import RAGChat
-from ratelimiter import RateLimiter
-from userauth import UserAuth
-from utils import add_sample_documents
-from vectorDocumentStore import VectorDocumentStore
+from config import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW, ROLES, init_openai_client
+from userAuth import UserAuth
+from RateLimiter import RateLimiter
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from vectorDocumentStore import VectorDocumentStore
+from utils import add_sample_documents
+from RagChat import RAGChat
 
 client = init_openai_client()
+print("initialized openai_client")
 user_auth = UserAuth()
+print("initialized User Auth")
 doc_store = VectorDocumentStore(client)
+print("initialized Vector data store")
 rag_chat = RAGChat(client, doc_store)
+print("initialized Rag Chat")
 rate_limiter = RateLimiter()
 
 if not any(doc_store.list_documents(role) for role in ROLES):
     add_sample_documents(doc_store)
+# print([doc_store.list_documents(role) for role in ROLES])
 
 with gr.Blocks(title="Role-Based RAG System") as demo:
     session_token = gr.State("")
@@ -29,16 +31,15 @@ with gr.Blocks(title="Role-Based RAG System") as demo:
         gr.Markdown("## User Login")
         username = gr.Textbox(label="Username")
         password = gr.Textbox(label="Password", type="password")
-        login_btn = gr.Button("Login")
         login_msg = gr.Markdown("")
         
+        login_btn = gr.Button("Login")
         def login_user(username, password):
             result = user_auth.authenticate(username, password)
             if result:
                 token, role = result
-                return token, username, role, f"✅ Logged in as {username} with role: {role}"
-            return "", "", "", "❌ Login failed. Check your credentials or account may be locked."
-        
+                return token, username, role, f"Logged in as {username} with role: {role}"
+            return "", "", "", "Login failed. Check your credentials or account may be locked."
         login_btn.click(
             fn=login_user, 
             inputs=[username, password], 

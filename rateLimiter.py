@@ -1,7 +1,9 @@
-
-from datetime import time
+import time
 from config import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW
-from app import logger
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class RateLimiter:
     def __init__(self, window: int = RATE_LIMIT_WINDOW, max_requests: int = RATE_LIMIT_MAX_REQUESTS):
