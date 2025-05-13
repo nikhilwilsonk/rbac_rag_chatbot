@@ -53,6 +53,7 @@ class UserAuth:
             }
             self._save_users(default_users)
             return default_users
+    
     def _load_sessions(self) -> Dict:
         if self.session_db_path.exists():
             with open(self.session_db_path, 'r') as f:
@@ -193,5 +194,4 @@ class UserAuth:
         return True
     
     def list_users(self) -> Dict:
-        """Return a dict of username -> role mappings (without sensitive data)"""
         return {username: user_data["role"] for username, user_data in self.users.items()}

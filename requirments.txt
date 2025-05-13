@@ -1,8 +1,0 @@
-openai
-gradio 
-numpy 
-pandas 
-scikit-learn 
-tqdm
-chromadb
-dotenv

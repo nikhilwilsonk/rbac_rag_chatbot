@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Dict, List
 import chromadb
-from config import DOCUMENTS_DIR, ROLES, VECTOR_DB_PATH,get_openai_api_key
+from config import DOCUMENTS_DIR, ROLES, VECTOR_DB_PATH, get_openai_api_key
 from chromadb.utils import embedding_functions
 import logging
 
@@ -15,6 +15,10 @@ class VectorDocumentStore:
         self.db_path = db_path
         self.docs_dir = docs_dir
         
+        self.docs_dir.mkdir(exist_ok=True)
+        for role in ROLES:
+            (self.docs_dir / role).mkdir(exist_ok=True)
+        
         self.chroma_client = chromadb.PersistentClient(path=str(db_path))
         
         self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
@@ -23,35 +27,36 @@ class VectorDocumentStore:
         )
         
         self.collections = {}
+        self._init_collections()
+    
+    def _init_collections(self):
         for role in ROLES:
             try:
                 self.collections[role] = self.chroma_client.get_collection(
                     name=f"{role}_docs",
                     embedding_function=self.embedding_function
                 )
-                print(self.collections[role])
-                print(self.embedding_function)
+                logger.info(f"Loaded existing collection for role '{role}'")
             except chromadb.errors.InvalidCollectionException:
                 self.collections[role] = self.chroma_client.create_collection(
                     name=f"{role}_docs",
                     embedding_function=self.embedding_function
                 )
-            
-            role_dir = self.docs_dir / role
-            role_dir.mkdir(exist_ok=True)
+                logger.info(f"Created new collection for role '{role}'")
     
     def add_document(self, role: str, title: str, content: str) -> bool:
-        """Add a document for a specific role and store in vector database"""
         if role not in ROLES:
             logger.warning(f"Invalid role: {role}")
             return False
         
-        doc_path = self.docs_dir / role / f"{title.replace(' ', '_')}.txt"
-        with open(doc_path, 'w') as f:
-            f.write(content)
-        
         try:
-            doc_id = f"{role}_{title.replace(' ', '_')}_{int(time.time())}"
+            safe_title = title.replace(' ', '_').replace('/', '_').replace('\\', '_')
+            doc_path = self.docs_dir / role / f"{safe_title}.txt"
+            with open(doc_path, 'w') as f:
+                f.write(content)
+            
+            doc_id = f"{role}_{safe_title}_{int(time.time())}"
+            
             existing_docs = self.collections[role].get(
                 where={"title": title}
             )
@@ -60,11 +65,13 @@ class VectorDocumentStore:
                     ids=existing_docs['ids']
                 )
                 logger.info(f"Replaced existing document '{title}' for role '{role}'")
+            
             self.collections[role].add(
                 documents=[content],
                 metadatas=[{"title": title, "path": str(doc_path)}],
                 ids=[doc_id]
             )
+            
             logger.info(f"Added document '{title}' for role '{role}'")
             return True
         
@@ -73,7 +80,6 @@ class VectorDocumentStore:
             return False
     
     def list_documents(self, role: str) -> List[str]:
-        """List all documents available for a specific role"""
         if role not in ROLES:
             logger.warning(f"Invalid role: {role}")
             return []
@@ -89,7 +95,6 @@ class VectorDocumentStore:
             return []
     
     def search_documents(self, role: str, query: str, top_k: int = 3) -> List[Dict]:
-        """Search for relevant documents based on query embedding"""
         if role not in ROLES:
             logger.warning(f"Invalid role: {role}")
             return []
@@ -105,9 +110,12 @@ class VectorDocumentStore:
             
             formatted_results = []
             for i, doc in enumerate(results['documents'][0]):
-                title = results['metadatas'][0][i].get('title', 'Untitled')
+                metadata = results['metadatas'][0][i] if i < len(results['metadatas'][0]) else {}
+                title = metadata.get('title', 'Untitled')
+                
                 score = results['distances'][0][i] if 'distances' in results else 0.0
                 similarity = 1.0 - min(score, 1.0)  
+                
                 formatted_results.append({
                     "title": title,
                     "content": doc,
@@ -118,4 +126,3 @@ class VectorDocumentStore:
         except Exception as e:
             logger.error(f"Error searching documents: {str(e)}")
             return []
-

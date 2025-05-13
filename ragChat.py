@@ -10,14 +10,12 @@ class RAGChat:
         self.doc_store = doc_store
         
     def chat(self, role: str, query: str, history=None) -> str:
-        """Generate a response using RAG"""
         if history is None:
             history = []
         
         docs = self.doc_store.search_documents(role, query, top_k=3)
         if not docs:
             return "I couldn't find any relevant documents to help answer your question."
-        
         context = "\n\n".join([
             f"Document: {doc['title']}\n{doc['content']}"
             for doc in docs

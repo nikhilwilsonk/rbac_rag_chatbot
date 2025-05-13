@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
 from openai import OpenAI
 
+load_dotenv()
 DATA_DIR = Path("data")
 USER_DB_PATH = DATA_DIR / "users.json"
 DOCUMENTS_DIR = DATA_DIR / "documents"
@@ -15,11 +15,9 @@ DOCUMENTS_DIR.mkdir(exist_ok=True)
 VECTOR_DB_PATH.mkdir(exist_ok=True)
 
 ROLES = ["finance", "engineering", "admin"]
-
-SESSION_EXPIRY = 60 * 60 #s
-
-RATE_LIMIT_WINDOW = 60  # s
-RATE_LIMIT_MAX_REQUESTS = 10  # max requests per window
+SESSION_EXPIRY = 60 * 60
+RATE_LIMIT_WINDOW = 60
+RATE_LIMIT_MAX_REQUESTS = 10
 
 def get_openai_api_key():
     api_key = os.environ.get("OPENAI_API_KEY")

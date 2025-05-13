@@ -9,17 +9,19 @@ from RagChat import RAGChat
 
 client = init_openai_client()
 print("initialized openai_client")
+
 user_auth = UserAuth()
 print("initialized User Auth")
+
 doc_store = VectorDocumentStore(client)
 print("initialized Vector data store")
+
 rag_chat = RAGChat(client, doc_store)
 print("initialized Rag Chat")
-rate_limiter = RateLimiter()
 
+rate_limiter = RateLimiter()
 if not any(doc_store.list_documents(role) for role in ROLES):
     add_sample_documents(doc_store)
-# print([doc_store.list_documents(role) for role in ROLES])
 
 with gr.Blocks(title="Role-Based RAG System") as demo:
     session_token = gr.State("")
@@ -123,7 +125,6 @@ with gr.Blocks(title="Role-Based RAG System") as demo:
             if not token:
                 return "## Admin Panel\nPlease login first."
             
-            # Validate session
             session_result = user_auth.validate_session(token)
             if not session_result:
                 return "## Admin Panel\nSession expired. Please login again."
@@ -154,8 +155,8 @@ with gr.Blocks(title="Role-Based RAG System") as demo:
                 
                 success = user_auth.add_user(username, password, role)
                 if success:
-                    return f"✅ Added user {username} with role {role}"
-                return f"❌ Failed to add user {username}"
+                    return f"Added user {username} with role {role}"
+                return f"Failed to add user {username}"
             
             add_user_btn.click(
                 fn=add_new_user,
@@ -195,8 +196,8 @@ with gr.Blocks(title="Role-Based RAG System") as demo:
                 
                 success = doc_store.add_document(role, title, content)
                 if success:
-                    return f"✅ Added document '{title}' for role {role}"
-                return f"❌ Failed to add document"
+                    return f"Added document '{title}' for role {role}"
+                return f"Failed to add document"
             
             add_doc_btn.click(
                 fn=add_new_document,
@@ -204,5 +205,3 @@ with gr.Blocks(title="Role-Based RAG System") as demo:
                 outputs=[doc_result]
             )
 demo.launch(share=True)
-
-
