@@ -5,8 +5,9 @@ __pycache__/
 data/
 # C extensions
 *.so
-image.png
 # Distribution / packaging
+*.pem
+*gradio/
 .Python
 build/
 develop-eggs/
